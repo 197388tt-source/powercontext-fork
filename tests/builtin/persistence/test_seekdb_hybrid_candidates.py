@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+from uuid import uuid4
 
 import pytest
 from sqlalchemy import event
@@ -34,11 +35,14 @@ class _Embedding:
 
 
 @pytest.mark.asyncio
-async def test_same_database_candidates_limits_and_filtered_native_plan(tmp_path) -> None:
+async def test_same_database_candidates_limits_and_filtered_native_plan(tmp_path, monkeypatch) -> None:
     async with open_builtin_contexts(
         BuiltinConfig(database=SeekDBConfig(path=tmp_path / "db")), embedding_model=_Embedding()
     ) as contexts:
         memory = (await contexts.get("regression")).artifacts.memory
+        # The default service reserves a single Memory ID per scope. Create two
+        # independent artifacts to exercise artifact filtering in the same scope.
+        monkeypatch.setattr(memory, "_id_factory", lambda prefix: f"{prefix}_{uuid4().hex}")
         heads = []
         for suffix in ("first", "second"):
             head = await memory.remember(
