@@ -16,14 +16,14 @@
 
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from powercontext.builtin.persistence.cursors import SourceCursorRepository
 from powercontext.builtin.persistence.database import AsyncDatabase
 from powercontext.builtin.persistence.processing_intents import ArtifactProcessingIntentRepository
 from powercontext.builtin.persistence.supervision import ArtifactProcessingFence, ArtifactProcessingLeaseRepository
-from powercontext.builtin.persistence.tables import PROFILE_POLICIES_TABLE, SOURCE_JOURNAL_HEADS_TABLE
+from powercontext.builtin.persistence.tables import PROFILE_POLICIES_TABLE, SOURCE_JOURNAL_HEADS_TABLE, SOURCES_TABLE
 
 
 async def enabled_profile_scopes(connection: AsyncConnection, scope_ids: tuple[str, ...]) -> frozenset[str]:
@@ -74,3 +74,32 @@ class SourceProcessingPendingProvider:
                 if intent is None or intent.dirty_generation == intent.clean_generation:
                     await intents.mark_dirty(connection, scope, self._binding)
         return str(rows[-1][0]) if len(rows) == limit else None
+
+
+async def source_count_scopes(
+    connection: AsyncConnection,
+    scope_ids: tuple[str, ...],
+    *,
+    binding_name: str,
+    threshold: int,
+) -> frozenset[str]:
+    """Count persisted identities after each family's successful cursor."""
+    cursors = await SourceCursorRepository().load_many(connection, scope_ids, binding_name)
+    eligible: set[str] = set()
+    for scope in scope_ids:
+        cursor = cursors.get(scope)
+        after = 0 if cursor is None else cursor.cursor.sequence
+        # Stop at the threshold; large backlogs need no full count or body decoding.
+        pending = (
+            select(SOURCES_TABLE.c.journal_position)
+            .where(
+                SOURCES_TABLE.c.scope_id == scope,
+                SOURCES_TABLE.c.journal_position > after,
+            )
+            .limit(threshold)
+            .subquery()
+        )
+        count = await connection.scalar(select(func.count()).select_from(pending))
+        if count == threshold:
+            eligible.add(scope)
+    return frozenset(eligible)
