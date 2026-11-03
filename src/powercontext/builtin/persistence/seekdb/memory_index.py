@@ -20,6 +20,7 @@ from pyobvector import VECTOR
 from sqlalchemy import bindparam, text
 from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.sql.elements import TextClause
+from typing_extensions import override
 
 from powercontext.builtin.artifacts.memory import (
     CapabilityNotSupportedError,
@@ -88,6 +89,7 @@ class SeekDBMemoryHybridIndex(CompositeMemoryIndex):
             params.extend((bindparam("tag_keys", expanding=True), bindparam("tag_hashes", expanding=True)))
         return text(sql).bindparams(*params)
 
+    @override
     async def search(
         self,
         connection: AsyncConnection,

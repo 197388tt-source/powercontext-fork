@@ -22,3 +22,8 @@ jobs:
           sudo ip address add 198.18.0.1/32 dev pcselftest0
           sudo ip link set pcselftest0 up
       - run: make -C competition check-baseline test-hybrid
+      - name: Same database candidate regression
+        run: >-
+          PYTHONPATH=src PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 competition/.venv/bin/python -m pytest -q
+          -c competition/pytest.ini --confcutdir=tests/builtin/persistence
+          tests/builtin/persistence/test_seekdb_hybrid_candidates.py
