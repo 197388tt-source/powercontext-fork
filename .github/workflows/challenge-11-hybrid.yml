@@ -1,0 +1,21 @@
+name: Challenge 11 native hybrid self-test
+on:
+  push:
+    branches: [challenge-11-hybrid-search]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  hybrid:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: make -C competition install
+      - name: Local engine network interface
+        run: |
+          sudo ip link add pcselftest0 type dummy
+          sudo ip address add 198.18.0.1/32 dev pcselftest0
+          sudo ip link set pcselftest0 up
+      - run: make -C competition check-baseline test-hybrid
