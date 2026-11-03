@@ -1,0 +1,47 @@
+name: Unified competition self-test
+on:
+  push:
+    branches: [competition/all-completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  completed-challenges:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v6
+      - run: make -C competition install
+      - name: Local engine network interface
+        run: |
+          sudo ip link add pcselftest0 type dummy
+          sudo ip address add 198.18.0.1/32 dev pcselftest0
+          sudo ip link set pcselftest0 up
+      - name: Frozen baseline and all completed public challenges
+        run: >-
+          make -k -C competition check-baseline test-csv test-pi test-rerank
+          test-incremental test-count-trigger test-embedding test-lifecycle
+          test-evidence test-hybrid
+      - name: Combined behavior regressions
+        env:
+          PYTHONPATH: src
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+        run: >-
+          competition/.venv/bin/python -m pytest -q -c competition/pytest.ini
+          --confcutdir=tests tests/test_csv_rows.py tests/test_pi_session.py
+          tests/test_http_reranker.py tests/test_context_pack_protocol.py
+          tests/test_coalescing_regressions.py tests/test_source_lifecycle.py
+          tests/test_sources.py tests/test_source_observations.py
+          tests/builtin/runtime/test_evidence_selection.py
+      - name: Native hybrid regression in a separate process
+        env:
+          PYTHONPATH: src
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+        run: >-
+          competition/.venv/bin/python -m pytest -q -c competition/pytest.ini
+          --confcutdir=tests/builtin/persistence
+          tests/builtin/persistence/test_seekdb_hybrid_candidates.py

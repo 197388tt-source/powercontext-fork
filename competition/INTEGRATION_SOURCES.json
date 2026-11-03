@@ -1,0 +1,58 @@
+{
+  "repository": "https://github.com/197388tt-source/powercontext-fork",
+  "submission_branch": "competition/all-completed",
+  "base_commit": "dab240063bfcfa7917898dc44da4baadb3747bd0",
+  "included_sources": [
+    {
+      "branch": "competition/context-02-incremental-pack",
+      "commit": "3ed27ba0ebdf7bc50696a85daedf3d0b67519105"
+    },
+    {
+      "branch": "competition/csv-row-evidence",
+      "commit": "b460f8d487ef4358e3892f6a0441589144c567c5"
+    },
+    {
+      "branch": "competition/http-reranking",
+      "commit": "bfccfd4c2b2e575265e7a8faed07f37ccf220579"
+    },
+    {
+      "branch": "competition/pi-session-history",
+      "commit": "dce4f19072682694737ecb49900ff35bfaa3f802"
+    },
+    {
+      "branch": "competition/embedding-coalescing",
+      "commit": "9cf702b0d44238cd78bfd277ff8adf3f1e5d0fb9"
+    },
+    {
+      "branch": "challenge-07-count-trigger",
+      "commit": "fbea1c7812667e06bfcd4bae6a922972c07d980d"
+    },
+    {
+      "branch": "challenge-09-source-lifecycle",
+      "commit": "43a203431058bb978034473b444a0649d11a0f35"
+    },
+    {
+      "branch": "challenge-10-evidence-selection",
+      "commit": "0e365c72b6563c696cb9da6588ef6161d93962ed"
+    },
+    {
+      "branch": "challenge-11-hybrid-search",
+      "commit": "d1219eb274ee20112fb3959c07b5ba319b7fdda6"
+    }
+  ],
+  "included_challenges": [
+    1,
+    2,
+    3,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "not_implemented": [
+    4
+  ]
+}
